@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Old-School Essentials</title>
+    <style>
+        :root {
+            --border-color: #333;
+            --bg-color: #fcfcfc;
+            --input-bg: #f0f0f0;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .sheet-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--bg-color);
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin: 0;
+            text-transform: uppercase;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 14px;
+            background: #333;
+            color: white;
+            padding: 2px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        /* Grid Systems */
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .main-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .other-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .other-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Inputs styling */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: var(--input-bg);
+            padding: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Tables for Stats */
+        .stat-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stat-table td,
+        .stat-table th {
+            border: 1px solid #ccc;
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        .stat-header {
+            background: #eee;
+            font-weight: bold;
+            width: 40px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .stat-desc {
+            font-size: 10px;
+            color: #555;
+        }
+
+        /* Saves & Combat */
+        .combat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+
+        .circle-input {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 18px;
+            border: 2px solid var(--border-color);
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* Inventory */
+        .inventory-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Image Upload Styles */
+        .image-container {
+            width: 100%;
+            height: 250px;
+            border: 2px dashed #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .image-container:hover {
+            background: #eee;
+            border-color: #666;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* ou cover, dependendo da preferência */
+        }
+
+        .placeholder-text {
+            color: #777;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* Utility */
+        .small-text {
+            font-size: 10px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .save-indicator {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .textarea {
+            width: 100%;
+        }
+
+        .btn-remove {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 12px;
+            display: none;
+            /* Hidden by default */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sheet-container">
+        <h1>Old-School Essentials - Ficha de Personagem</h1>
+
+        <div class="section header-grid">
+            <div class="input-group">
+                <label>Nome do Personagem</label>
+                <input type="text" id="char_name">
+            </div>
+            <div class="input-group">
+                <label>Classe</label>
+                <input type="text" id="char_class">
+            </div>
+            <div class="input-group">
+                <label>Título</label>
+                <input type="text" id="char_title">
+            </div>
+            <div class="input-group">
+                <label>Alinhamento</label>
+                <select id="char_align" style="padding: 5px;">
+                    <option value="">-- Selecione --</option>
+                    <option value="ordeiro">Ordeiro</option>
+                    <option value="neutro">Neutro</option>
+                    <option value="caotico">Caótico</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Nível</label>
+                <input type="number" id="char_level">
+            </div>
+        </div>
+
+        <div class="main-stats-grid">
+            <div class="section">
+                <h3>Atributos</h3>
+                <table class="stat-table">
+                    <tr>
+                        <td class="stat-header">FOR</td>
+                        <td><input type="number" id="attr_str" class="circle-input"></td>
+                        <td class="stat-desc">Ataques corpo a corpo, Dano, Abrir portas</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">INT</td>
+                        <td><input type="number" id="attr_int" class="circle-input"></td>
+                        <td class="stat-desc">Idiomas, erudição</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">SAB</td>
+                        <td><input type="number" id="attr_sab" class="circle-input"></td>
+                        <td class="stat-desc">Proteção x Feitiços</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">DES</td>
+                        <td><input type="number" id="attr_des" class="circle-input"></td>
+                        <td class="stat-desc">CA, Iniciativa, Ataques à distância</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">CON</td>
+                        <td><input type="number" id="attr_con" class="circle-input"></td>
+                        <td class="stat-desc">Pontos de Vida</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">CAR</td>
+                        <td><input type="number" id="attr_car" class="circle-input"></td>
+                        <td class="stat-desc">Auxiliares, lealdade, reações</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section center">
+                <h3>Retrato</h3>
+                <div class="image-container" onclick="document.getElementById('img_upload').click()">
+                    <span id="img_placeholder" class="placeholder-text">Clique para adicionar<br>imagem</span>
+                    <img id="char_image_display" style="display: none;">
+                </div>
+                <input type="file" id="img_upload" accept="image/*" style="display: none;">
+                <button id="btn_remove_img" class="btn-remove" onclick="removeImage()">Remover Imagem</button>
+            </div>
+
+            <div class="section">
+                <h3>Jogadas de Proteção</h3>
+                <table class="stat-table">
+                    <tr>
+                        <td class="stat-header">M</td>
+                        <td><input type="number" id="save_death" class="circle-input"></td>
+                        <td class="stat-desc">Morte, Veneno</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">V</td>
+                        <td><input type="number" id="save_wands" class="circle-input"></td>
+                        <td class="stat-desc">Varinhas mágicas</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">P</td>
+                        <td><input type="number" id="save_para" class="circle-input"></td>
+                        <td class="stat-desc">Paralisia, Petrificação</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">S</td>
+                        <td><input type="number" id="save_breath" class="circle-input"></td>
+                        <td class="stat-desc">Ataque de Sopro</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-header">F</td>
+                        <td><input type="number" id="save_spells" class="circle-input"></td>
+                        <td class="stat-desc">Feitiços, cetros e cajados</td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <div class="section">
+                    <h3>Combate & Sobrevivência</h3>
+                    <div class="combat-grid">
+                        <div class="input-group center">
+                            <label>PV Atuais</label>
+                            <input type="number" id="hp_current" class="circle-input">
+                        </div>
+                        <div class="input-group center">
+                            <label>PV Máximos</label>
+                            <input type="number" id="hp_max" class="circle-input">
+                        </div>
+                        <div class="input-group center">
+                            <label>Classe de Armadura (CA)</label>
+                            <input type="number" id="ac_val" class="circle-input">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <div class="input-group">
+                            <label>Iniciativa (+DES)</label>
+                            <input type="text" id="initiative">
+                        </div>
+                        <div class="input-group">
+                            <label>Bônus de Ataque Base</label>
+                            <input type="text" id="bab">
+                        </div>
+                        <div class="input-group">
+                            <label>Movimento</label>
+                            <input type="text" id="movement">
+                        </div>
+                    </div>
+                </div>
+                <h3>Habilidades, perícias, armas</h3>
+                <textarea class="textarea" id="equipment"
+                    placeholder="Liste suas armas, armaduras e itens aqui..."></textarea>
+            </div>
+        </div>
+        <div class="other-stats-grid">
+            <div class="section">
+                <h3>Exploração (X em 6)</h3>
+                <div style="gap: 10px; text-align: center;">
+                    <div class="input-group">
+                        <label>Ouvir Ruídos (OR)</label>
+                        <input type="text" id="explore_listen">
+                    </div>
+                    <div class="input-group">
+                        <label>Abrir Portas (AP)</label>
+                        <input type="text" id="explore_doors">
+                    </div>
+                    <div class="input-group">
+                        <label>Passagens Secretas (PS)</label>
+                        <input type="text" id="explore_secret">
+                    </div>
+                    <div class="input-group">
+                        <label>Armadilhas (AR)</label>
+                        <input type="text" id="explore_traps">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3>Dinheiro</h3>
+                <div class="input-group" style="margin-bottom: 10px;"><label>Reais</label><input type="number"
+                        id="coin_pp"></div>
+
+                <h3>Experiência (XP)</h3>
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label>XP Atual</label>
+                    <input type="number" id="xp_current">
+                </div>
+                <div class="input-group" style="margin-bottom: 10px;">
+                    <label>Próximo Nível</label>
+                    <input type="number" id="xp_next">
+                </div>
+            </div>
+            <div>
+
+            </div>
+        </div>
+
+
+        <div class="inventory-grid section">
+            <div>
+                <h3>Anotações / Idiomas</h3>
+                <textarea class="textarea" id="notes" placeholder="Feitiços, auxiliares, pistas..."></textarea>
+            </div>
+        </div>
+
+        <div class="center small-text">
+            Baseado na ficha OSE v1.3 - Dados salvos automaticamente no navegador.
+        </div>
+    </div>
+
+    <div id="saveMsg" class="save-indicator">Salvo!</div>
+
+    <script>
+        // Seleciona todos os inputs e textareas
+        const inputs = document.querySelectorAll('input, textarea, select');
+        const saveMsg = document.getElementById('saveMsg');
+
+        // Referências para imagem
+        const imgInput = document.getElementById('img_upload');
+        const imgDisplay = document.getElementById('char_image_display');
+        const imgPlaceholder = document.getElementById('img_placeholder');
+        const btnRemove = document.getElementById('btn_remove_img');
+
+        // Função para salvar dados de texto
+        function saveData() {
+            inputs.forEach(input => {
+                // Não salvar o input do tipo file no localStorage dessa forma
+                if (input.id && input.type !== 'file') {
+                    localStorage.setItem(input.id, input.value);
+                }
+            });
+            showSaved();
+        }
+
+        function showSaved() {
+            saveMsg.style.display = 'block';
+            setTimeout(() => {
+                saveMsg.style.display = 'none';
+            }, 1000);
+        }
+
+        // Lógica da Imagem
+        imgInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Limite de segurança (aprox 2MB) para não quebrar o LocalStorage
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("A imagem é muito grande para salvar no navegador. Tente uma imagem menor (menos de 2MB).");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const base64String = reader.result;
+                    localStorage.setItem('char_image_data', base64String);
+                    displayImage(base64String);
+                    showSaved();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function displayImage(base64Data) {
+            if (base64Data) {
+                imgDisplay.src = base64Data;
+                imgDisplay.style.display = 'block';
+                imgPlaceholder.style.display = 'none';
+                btnRemove.style.display = 'inline-block';
+            } else {
+                imgDisplay.src = '';
+                imgDisplay.style.display = 'none';
+                imgPlaceholder.style.display = 'block';
+                btnRemove.style.display = 'none';
+            }
+        }
+
+        function removeImage() {
+            localStorage.removeItem('char_image_data');
+            displayImage(null);
+            imgInput.value = ""; // Reset input
+        }
+
+        // Função para carregar dados
+        function loadData() {
+            // Carregar Textos
+            inputs.forEach(input => {
+                if (input.id && input.type !== 'file') {
+                    const savedValue = localStorage.getItem(input.id);
+                    if (savedValue !== null) {
+                        input.value = savedValue;
+                    }
+                }
+            });
+
+            // Carregar Imagem
+            const savedImage = localStorage.getItem('char_image_data');
+            displayImage(savedImage);
+        }
+
+        // Adiciona listener para salvar inputs de texto
+        inputs.forEach(input => {
+            if (input.type !== 'file') {
+                input.addEventListener('input', saveData);
+                input.addEventListener('change', saveData);
+            }
+        });
+
+        // Carrega os dados ao abrir a página
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+
+</body>
+
+</html>
