@@ -501,6 +501,36 @@
             </div>
         </div>
 
+        <div class="section">
+            <h3>ORÁCULO</h3>
+            <div class="input-group">
+                <label>Instruções / Contexto</label>
+                <textarea class="textarea" id="ai_prompt"
+                    placeholder="Ex: Crie uma descrição curta de como meu guerreiro ataca..."></textarea>
+            </div>
+
+            <div class="input-group" style="margin-top: 10px;">
+                <label>Senha</label>
+                <input type="password" id="ai_password" placeholder="Senha do usuário">
+            </div>
+
+            <button id="btn_ai_send" onclick="callAI()"
+                style="margin-top: 10px; padding: 10px; background: #333; color: white; border: none; cursor: pointer; font-family: inherit; width: 100%;">
+                ENVIAR PARA O ORÁCULO
+            </button>
+
+            <div class="input-group" style="margin-top: 15px;">
+                <label id="lbl_response_name">Resposta:</label>
+                <div id="resp_personagem"
+                    style="background: #e8e8e8; padding: 10px; min-height: 60px; border: 1px solid #ccc; white-space: pre-wrap; font-size: 14px;">
+                </div>
+            </div>
+
+            <div class="center small-text" style="color: #666; margin-top: 5px;">
+                * Campos de IA não são salvos.
+            </div>
+        </div>
+
         <div class="center small-text">
             Baseado na ficha OSE v1.3 - Dados salvos automaticamente no navegador.
         </div>
@@ -518,7 +548,7 @@
 
         function saveData() {
             inputs.forEach(input => {
-                if (input.id && input.type !== 'file') {
+                if (input.id && input.type !== 'file' && input.id !== 'ai_prompt' && input.id !== 'ai_password') {
                     localStorage.setItem(input.id, input.value);
                 }
             });
@@ -572,7 +602,7 @@
 
         function loadData() {
             inputs.forEach(input => {
-                if (input.id && input.type !== 'file') {
+                if (input.id && input.type !== 'file' && input.id !== 'ai_prompt' && input.id !== 'ai_password') {
                     const savedValue = localStorage.getItem(input.id);
                     if (savedValue !== null) input.value = savedValue;
                 }
@@ -589,6 +619,111 @@
         });
 
         window.addEventListener('DOMContentLoaded', loadData);
+
+        // --- Configuração da IA ---
+        const WORKER_URL = "https://rpg.guihenrique-dev.workers.dev";
+
+        // Função auxiliar para coletar dados da ficha
+        function collectCharacterData() {
+            let dataString = "--- DADOS ATUAIS DA FICHA ---\n";
+
+            // Seleciona todos os inputs relevantes
+            const elements = document.querySelectorAll('input, select, textarea');
+
+            elements.forEach(el => {
+                // Ignorar campos da própria IA, arquivos e botões
+                if (el.id === 'ai_prompt' || el.id === 'ai_password' || el.type === 'file' || el.type === 'button' || el.type === 'submit') {
+                    return;
+                }
+
+                // Ignorar campos vazios para não poluir o contexto
+                if (!el.value) return;
+
+                let labelName = el.id; // Padrão: usa o ID
+
+                // Tenta encontrar um nome legível
+                // 1. Verifica se está num Input Group (padrão do layout)
+                const group = el.closest('.input-group');
+                if (group) {
+                    const label = group.querySelector('label');
+                    if (label) labelName = label.innerText;
+                }
+                // 2. Verifica se está numa tabela de atributos (FOR, DES, etc)
+                else {
+                    const row = el.closest('tr');
+                    if (row) {
+                        const header = row.querySelector('.stat-header');
+                        if (header) labelName = header.innerText; // Ex: FOR, INT
+
+                        // Adiciona contexto extra para salvaguardas (M, V, P...)
+                        if (!header) {
+                            // Lógica para quando não achar o header direto, mantém o ID
+                        }
+                    }
+                }
+
+                dataString += `${labelName}: ${el.value}\n`;
+            });
+
+            return dataString + "-----------------------------\n";
+        }
+
+        async function callAI() {
+            const userPrompt = document.getElementById('ai_prompt').value;
+            const password = document.getElementById('ai_password').value;
+            const output = document.getElementById('resp_personagem');
+            const btn = document.getElementById('btn_ai_send');
+            const charName = document.getElementById('char_name').value || "Personagem";
+            const responseLabel = document.getElementById('lbl_response_name');
+
+            if (!userPrompt || !password) {
+                alert("Por favor, preencha o texto e a senha.");
+                return;
+            }
+
+            if (WORKER_URL.includes("COLOQUE_SUA_URL")) {
+                alert("Você precisa configurar a URL do Worker no código HTML.");
+                return;
+            }
+
+            // Coleta o contexto da ficha e combina com o prompt do usuário
+            const context = collectCharacterData();
+            const fullPayload = `${context}\nINSTRUÇÃO DO MESTRE/JOGADOR:\n${userPrompt}`;
+
+            // Estado de Carregamento
+            btn.disabled = true;
+            btn.innerText = "Consultando os planos superiores...";
+            output.innerText = "";
+            output.style.opacity = "0.5";
+
+            try {
+                const targetUrl = `${WORKER_URL}?password=${encodeURIComponent(password)}`;
+
+                const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    body: fullPayload, // Envia o contexto + prompt
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: Verifique sua senha.`);
+                }
+
+                const data = await response.text();
+
+                responseLabel.innerText = `Oráculo para ${charName}:`;
+                output.innerText = data;
+
+            } catch (error) {
+                output.innerText = "Falha na comunicação: " + error.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "ENVIAR PARA O ORÁCULO";
+                output.style.opacity = "1";
+            }
+        }
     </script>
 
 </body>
